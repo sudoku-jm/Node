@@ -4,15 +4,14 @@ const path = require("path");
 
 const users = {}; // 데이터 저장용
 
-http
-  .createServer(async (req, res) => {
+http.createServer(async (req, res) => {
     try {
-      if (req.method === "GET") {
-        if (req.url === "/") {
-          const data = await fs.readFile(
-            path.join(__dirname, "restFront.html")
+      if (req.method === "GET") { //요청 (GET요청) 일경우
+        if (req.url === "/") {    //요청 URL이 (/) 일 때
+          const data = await fs.readFile( //해당 restFront.html을 읽어서 전달 해줘라.
+            path.join(__dirname, "restFront.html")  
           );
-          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }); //응답 200 성공했을 때 response : header content-type에 지정.
           return res.end(data);
         } else if (req.url === "/about") {
           const data = await fs.readFile(path.join(__dirname, "about.html"));
@@ -52,9 +51,11 @@ http
         if (req.url.startsWith("/user/")) {
           const key = req.url.split("/")[2];
           let body = "";
+
           req.on("data", (data) => {
             body += data;
           });
+          
           return req.on("end", () => {
             console.log("PUT 본문(Body):", body);
             users[key] = JSON.parse(body).name;

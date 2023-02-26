@@ -40,7 +40,7 @@ async function getUser() {
       userDiv.appendChild(edit);
       userDiv.appendChild(remove);
       list.appendChild(userDiv);
-      console.log(res.data);
+      console.log('get users!!',res.data);
     });
   } catch (err) {
     console.error(err);
