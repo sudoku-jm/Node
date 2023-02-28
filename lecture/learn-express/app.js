@@ -2,44 +2,82 @@ const express = require('express');
 const path = require('path');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const multer = require('multer');
+
+const fs = require('fs'); //uploads라는 폴더를 만들어도 되지만 알아서 만들어주는 파일시스템 모듈.
+
 
 const app = express();
 
 app.set('port', process.env.PORT || 3000);
 
 app.use(morgan('combined'));
+app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
+app.use(express.json()); 
+app.use(express.urlencoded({extended:true})); 
+app.use(session({
+    resave: false,              
+    saveUninitialized: false,
+    secret : 'test',
+    cookie: {                         
+      httpOnly: true,                   
+      secure: false,                   
+    },
 
+    name: 'session-cookie',
+  }));
 
-app.get('/',(req, res) => {
-    const myCookie = 'hello';
-    // req.cookies
-   // req.signedCookies;  //암호화, 서명된 쿠키 이용
-    //쿠키 설정
-    res.cookie('myCookie', encodeURIComponent(myCookie), {
-        expires : new Date(),
-        httpOnly : true,
-        path : '/'
-    })
-
-    //쿠키 삭제
-    // res.clearCookie('myCookie', encodeURIComponent(myCookie),{
-    //     httpOnly : true,
-    //     path : '/'
-    // })
-    res.sendFile(path.join(__dirname,'index.html'));
+//파일 시스템 여부 확인 후 업로드 파일 생성.
+const dirPath = 'uploads';
+try {
+  fs.readdirSync(dirPath);
+} catch (err) {
+  if (err.code === 'ENOENT') {
+    console.error(`${dirPath } 디렉토리가 없음`,err);
+		console.log('uploads 폴더가 없으므로 생성합니다.');
+	  fs.mkdirSync('uploads');
+  } else {
+    console.error(err);
+  }
+}
+const upload = multer({
+    storage: multer.diskStorage({
+        destination(req, file, done) {
+            done(null, 'uploads/');   //uploads라는 폴더에 업로드.
+        },
+        filename(req, file, done) {
+            const ext = path.extname(file.originalname);
+            done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+        },
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 },      //5MB
 });
 
 
+// 해당 경로에서는 파일 업로드를 하지 않음
+app.get('/', upload.none(), (req, res) => {
+    res.send('start!');
+});
+  
+app.get('/file', (req, res) => {
+    res.sendFile(path.join(__dirname, 'multipart.html'));
+});
+  
 
-// app.use((req, res, next) => {
-//     res.status(404).send('404지롱');
-// });
-// app.use((err, req, res, next) => {
-//     console.error(err);
-//     res.status(500).send('뭔가 문제가 생겼어요!!');
+
+// app.post('/upload', upload.single('image'), (req, res) => {
+//    console.log("upload!!",req.file);
+//    res.status(200).send('ok');
 // });
   
+app.post('/upload', upload.array('files'), (req, res) => {
+   console.log("upload!!",req.files, req.body);
+   res.status(200).send('ok');
+});
+  
+
 
 app.listen(3000,() => {
     console.log('익스프레스 서버 실행');

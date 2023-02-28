@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>멀티파트 파일 테스트</title>
+</head>
+<body>
+  <form id="form" action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="image" multiple />
+    <!-- <input type="file" name="image2" /> -->
+    <input type="text" name="title" />
+    <button type="submit">업로드</button>
+  </form>
+
+  <!-- axios CDN -->
+  <script src="https://unpkg.com/axios@1.2.1/dist/axios.min.js"></script>
+  <script>
+    document.getElementById('form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      console.log("submit",e.target.image.files)
+      const formData = new FormData();
+      formData.append('image',e.target.image.files);  //file1개 
+      formData.append('title',e.target.image.value);
+
+      axios.post('/upload',formData);
+    });
+  </script>
+
+</body>
+</html>
