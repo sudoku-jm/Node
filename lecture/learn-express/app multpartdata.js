@@ -4,10 +4,9 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const multer = require('multer');
-const dotenv = require('dotenv');
+
 const fs = require('fs'); //uploads라는 폴더를 만들어도 되지만 알아서 만들어주는 파일시스템 모듈.
 
-dotenv.config();
 
 const app = express();
 
@@ -15,13 +14,13 @@ app.set('port', process.env.PORT || 3000);
 
 app.use(morgan('combined'));
 app.use('/', express.static(path.join(__dirname, 'public')));
-app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(cookieParser());
 app.use(express.json()); 
 app.use(express.urlencoded({extended:true})); 
 app.use(session({
     resave: false,              
     saveUninitialized: false,
-    secret : process.env.COOKIE_SECRET,
+    secret : 'test',
     cookie: {                         
       httpOnly: true,                   
       secure: false,                   
@@ -73,12 +72,12 @@ app.get('/upload', (req, res) => {
 //    res.status(200).send('ok');
 // });
   
-// app.post('/upload', upload.array('files'), (req, res, next) => {
+// app.post('/upload', upload.array('files'),async (req, res, next) => {
 //    console.log("upload!!",req.files);
 //    res.status(200).send('ok');
 // });
   
-// app.post('/upload', upload.fields([{name : 'image1'},{name : 'image2'}]), (req, res, next) => {
+// app.post('/upload', upload.fields([{name : 'image1'},{name : 'image2'}]),async (req, res, next) => {
 //    console.log("upload!!",req.files, req.body);
 //    res.status(200).send('ok');
 // });
@@ -87,7 +86,7 @@ const fields = [
   { name: 'files1', limits: 5 },
   { name: 'files2', limits: 2 }
 ];
-app.post('/upload', upload.fields(fields), (req, res, next) => {
+app.post('/upload', upload.fields(fields),async (req, res, next) => {
    console.log("upload!!",req.files, req.body);
    res.status(200).send('ok');
 });
