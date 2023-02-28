@@ -32,7 +32,7 @@ app.use(session({
 //파일 시스템 여부 확인 후 업로드 파일 생성.
 const dirPath = 'uploads';
 try {
-  fs.readdirSync(dirPath);
+  fs.accessSync(dirPath);
 } catch (err) {
   if (err.code === 'ENOENT') {
     console.error(`${dirPath } 디렉토리가 없음`,err);
@@ -45,7 +45,7 @@ try {
 const upload = multer({
     storage: multer.diskStorage({
         destination(req, file, done) {
-            done(null, 'uploads/');   //uploads라는 폴더에 업로드.
+            done(null, 'uploads');   //uploads라는 폴더에 업로드.
         },
         filename(req, file, done) {
             const ext = path.extname(file.originalname);
@@ -61,7 +61,7 @@ app.get('/', upload.none(), (req, res) => {
     res.send('start!');
 });
   
-app.get('/file', (req, res) => {
+app.get('/upload', (req, res) => {
     res.sendFile(path.join(__dirname, 'multipart.html'));
 });
   
@@ -72,7 +72,21 @@ app.get('/file', (req, res) => {
 //    res.status(200).send('ok');
 // });
   
-app.post('/upload', upload.array('files'), (req, res) => {
+// app.post('/upload', upload.array('files'),async (req, res, next) => {
+//    console.log("upload!!",req.files);
+//    res.status(200).send('ok');
+// });
+  
+// app.post('/upload', upload.fields([{name : 'image1'},{name : 'image2'}]),async (req, res, next) => {
+//    console.log("upload!!",req.files, req.body);
+//    res.status(200).send('ok');
+// });
+  
+const fields = [
+  { name: 'files1', maxCount: 5 },
+  { name: 'files2', maxCount: 2 }
+];
+app.post('/upload', upload.fields(fields),async (req, res, next) => {
    console.log("upload!!",req.files, req.body);
    res.status(200).send('ok');
 });
