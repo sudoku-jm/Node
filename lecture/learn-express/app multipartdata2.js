@@ -9,12 +9,8 @@ const fs = require('fs'); //uploads라는 폴더를 만들어도 되지만 알�
 
 dotenv.config();
 
-//라우터 불러오기
-const indexRouter = require('./routes'); //index.js 라우터를 불러온다.
-const userRouter = require('./routes/user'); //user.js 라우터를 불러온다
-
-
 const app = express();
+
 app.set('port', process.env.PORT || 3000);
 
 app.use(morgan('combined'));
@@ -61,11 +57,6 @@ const upload = multer({
 });
 
 
-//라우터 불러오기
-app.use('/', indexRouter);      // 해당 라우터 내부 기본경로 / 로 시작
-app.use('/user', userRouter);   //해당 라우터 내부 기본경로 /user로 시작
-
-
 // 해당 경로에서는 파일 업로드를 하지 않음
 app.get('/', upload.none(), (req, res) => {
     res.send('start!');
@@ -103,6 +94,6 @@ app.post('/upload', upload.fields(fields), (req, res, next) => {
   
 
 
-app.listen(app.get('port'),() => {
-    console.log(app.get('port'),'번 포트 에서 대기 중');
+app.listen(3000,() => {
+    console.log('익스프레스 서버 실행');
 });
