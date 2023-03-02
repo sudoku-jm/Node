@@ -1,0 +1,4 @@
+/node_modules
+/learn-express/node_modules
+/learn-sequelize/node_modules
+# .env
