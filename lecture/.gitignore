@@ -2,3 +2,6 @@
 /learn-express/node_modules
 /learn-sequelize/node_modules
 # .env
+/learn-express/node_modules
+/learn-mongoose/node_modules
+/learn-sequelize/node_modules
