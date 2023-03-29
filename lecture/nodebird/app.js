@@ -5,13 +5,20 @@ const path = require('path');
 const session = require('express-session');
 const nunjucks = require('nunjucks');
 const dotenv = require('dotenv');
+const passport = require('passport');
 
 dotenv.config();// 최대한 위에 적어주는게 좋다. 프로세스 설정값들이 들어가기때문.
 const pageRouter = require('./routes/page');
+const authRouter = require('./routes/auth');
 
 const {sequelize} = require('./models');
 
+const passportConfig = require('./passport');
+
 const app = express();
+
+passportConfig();  //패스포트 설정
+
 //배포시 80포트로 변경될 것이다.
 app.set('port', process.env.PORT || 8001);
 
@@ -54,10 +61,16 @@ app.use(session({
     }
 }));
 
+
+//express session보다 아래에 위치.
+app.use(passport.initialize());
+//패스포트 로그인 이후 작업 할 수 있게 해준다.deserializeUser로 보냄.
+app.use(passport.session()); 
+
 app.use('/', pageRouter);   // '/'경로에 댛ㄴ 요청이 들어오면 pageRouter객체에서 해다 요청에 대한 핸들러 함수를 찾아 실행. 
 // 예 ) GET '/' 요청에 대한 함수가 정의 되어 있다면 해당 핸들러 함수 실행.
 
-
+app.use('/auth',authRouter);
 
 //에러처리 미들웨어에는 next를 반드시적어주도록한다.
 app.use((req, res, next) => {

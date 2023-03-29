@@ -8,7 +8,7 @@ class User extends Sequelize.Model{
                 allowNull : true,
                 unique : true
             },
-            nink : {
+            nick : {
                 type : Sequelize.STRING(15),
                 allowNull : false,
             },
