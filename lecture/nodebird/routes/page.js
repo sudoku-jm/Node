@@ -8,7 +8,8 @@ router.get('/', (req, res, next) => {
     const twits = [];
     res.render('main', {        //main.html
         title : 'Nodebird',
-        twits
+        twits,
+        user : req.user,        // 로그인을 했을 경우 유저정보를 내려준다.
     });
 });
 

@@ -3,11 +3,11 @@ const express = require('express');
 const bcrypt = require('bcrypt')
 const passport = require('passport');
 const User = require('../models/user');
-
+const {isLoggedIn , isNotLoggedIn} = require('../middlewares');
 const router = express.Router();
 
 // POST /auth/join
-router.post('/join' , async (req, res, next) => {
+router.post('/join', isNotLoggedIn, async (req, res, next) => {
     const {email, nick, password} = req.body;
     try{
         //회원 존재 여부
@@ -21,7 +21,7 @@ router.post('/join' , async (req, res, next) => {
             nick,
             password : hash,
         });
-        return res.redirect('/');
+        return res.status(200).redirect('/');
     }catch(err){
         console.error(err);
         return next(err);
@@ -29,7 +29,7 @@ router.post('/join' , async (req, res, next) => {
 });
 
 // POST /auth/login
-router.post('/login' , (req, res, next) => {
+router.post('/login', isNotLoggedIn, (req, res, next) => {
    //패스포트 전략 사용
    //authenticate는 미들웨어다.
    passport.authenticate('local', (authError, user, info) => {
@@ -52,18 +52,33 @@ router.post('/login' , (req, res, next) => {
         }
 
         // serializeUser에서 생성된 세션 쿠키를 브라우저로 보내준다.
-        return res.redirect('/');       //로그인 성공.
+        return res.status(200).redirect('/');      //로그인 성공.
     })
 
    })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙입니다.
 });
 
 
-// POST /auth/logout
-router.post('/logout' , (req, res, next) => {
-    req.logout(); //서버에서 세샨 쿠키를 지워준다.
-    req.session.destroy();  //세션 파괴
+// GET /auth/logout
+router.get('/logout' , isLoggedIn , (req, res ) => {
+  //  req.logout(); //서버에서 세샨 쿠키를 지워준다.
+  //  req.session.destroy();  //세션 파괴
+  //  res.redirect('/');
+  req.logout(() => {
     res.redirect('/');
+  });
+});
+
+// GET /auth/kakao
+// 실행 시  kakaoStrategy 실행.
+router.get('/kakao', passport.authenticate('kakao')); 
+
+//보내지 않았지만 kakaoStrategy를 거치니 해당 콜백으로 온다.
+// GET /auth/kakao/callback
+router.get('/kakao/callback', passport.authenticate('kakao', {
+    failureRedirect: '/?loginError=카카오로그인 실패',
+}), (req, res) => {
+    res.redirect('/'); // 성공 시에는 /로 이동
 });
 
 module.exports = router;

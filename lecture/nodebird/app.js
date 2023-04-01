@@ -10,15 +10,11 @@ const passport = require('passport');
 dotenv.config();// 최대한 위에 적어주는게 좋다. 프로세스 설정값들이 들어가기때문.
 const pageRouter = require('./routes/page');
 const authRouter = require('./routes/auth');
-
 const {sequelize} = require('./models');
-
 const passportConfig = require('./passport');
 
 const app = express();
-
 passportConfig();  //패스포트 설정
-
 //배포시 80포트로 변경될 것이다.
 app.set('port', process.env.PORT || 8001);
 
@@ -26,12 +22,10 @@ app.set('port', process.env.PORT || 8001);
 // 넌적스 템플릿 엔진과 연동하는 부분이 아니라, express에서 사용 할 템플릿 엔진 설정.
  // 넌적스 기본 환경 설정 변경. 
 app.set('view engine','html');
-nunjucks.configure(
-    'views',        // 넌적스를 템플릿 위치 폴더명
-{
-    express : app,   //express애플리케이션과 넌적스를 연결.
-    watch : true     // 템플릿 파일의 변경사항을 감지하고 자동으로 리로드.
-});
+nunjucks.configure('views', {
+    express: app,
+    watch: true,
+  });
 
 
 //sequelize.sync()가 테이블 생성 IF NOT EXIST 으로 테이블이 없을 때만 생성
@@ -94,6 +88,3 @@ app.use((err, req, res , next) => {
 app.listen(app.get('port'), () => {
     console.log(app.get('port'), '번 포트에서 대기중입니다.');
 });
-
-
-
