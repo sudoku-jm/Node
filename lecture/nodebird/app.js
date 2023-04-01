@@ -10,6 +10,7 @@ const passport = require('passport');
 dotenv.config();// 최대한 위에 적어주는게 좋다. 프로세스 설정값들이 들어가기때문.
 const pageRouter = require('./routes/page');
 const authRouter = require('./routes/auth');
+const postRouter = require('./routes/post');
 const {sequelize} = require('./models');
 const passportConfig = require('./passport');
 
@@ -65,6 +66,7 @@ app.use('/', pageRouter);   // '/'경로에 댛ㄴ 요청이 들어오면 pageRo
 // 예 ) GET '/' 요청에 대한 함수가 정의 되어 있다면 해당 핸들러 함수 실행.
 
 app.use('/auth',authRouter);
+app.use('/post', postRouter);
 
 //에러처리 미들웨어에는 next를 반드시적어주도록한다.
 app.use((req, res, next) => {
