@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { isLoggedIn } = require('../middlewares');
+const { Post } = require('../models');
 
 const router = express.Router();
 
@@ -21,10 +22,10 @@ const upload = multer({
         destination(req, res, done){
             done(null, 'uploads/');
         },
-        filename(rea, res, done){
+        filename(rea, file, done){
             const ext = path.extname(file.originalname);
             const basename = path.basename(file.originalname, ext);
-            done(null, basename + Date.now() + ext);
+            done(null, basename + Date.now() + ext); //같은 파일 명 덮어씌워짐 방지하기위해 업로드 날짜 추가.
             
         }
     }),
@@ -36,12 +37,23 @@ const upload = multer({
 // POST /post/img
 router.post('/img', isLoggedIn, upload.single('img'), (req, res, next) => {
     console.log(req.file);
-    res.status(200).json({
-        url : `/img/${req.file.filename}`
-    })
+    res.status(200).json({url : `/img/${req.file.filename}`}); //URL 프론트로 돌려줌.
 });
 
 //POST /post
-router.post('/', isLoggedIn, upload.none(), (req, res, next) => {
-
+router.post('/', isLoggedIn, upload.none(), async (req, res, next) => {
+    try{
+        //게시글 업로드.
+        const post = await Post.create({
+            content : req.body.content,
+            img : req.body.url,
+            UserId : req.user.id,
+        });
+        res.redirect("/");
+    }catch(err){
+        console.error(err);
+        next(err);
+    }
 }); 
+
+module.exports = router;

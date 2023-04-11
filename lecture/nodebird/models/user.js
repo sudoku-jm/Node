@@ -49,6 +49,9 @@ class User extends Sequelize.Model{
             as : 'Followings',
             through : 'Follow',
         });
+        //as에 따라 관계 메서드가 정해진다. 안넣으면 모델명에 따라 정해짐
+        // addFollowing , addFollwer, addFolloings, addFollowers (단수 복수 가능)
+        // addPost, addPosts...(단수 복수 가능)
     }
 };
 

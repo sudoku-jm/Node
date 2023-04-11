@@ -11,6 +11,7 @@ dotenv.config();// 최대한 위에 적어주는게 좋다. 프로세스 설정�
 const pageRouter = require('./routes/page');
 const authRouter = require('./routes/auth');
 const postRouter = require('./routes/post');
+const userRouter = require('./routes/user');
 const {sequelize} = require('./models');
 const passportConfig = require('./passport');
 
@@ -43,6 +44,7 @@ sequelize.sync({ force : false })
 // 개발 시 dev, 배포 시 comnined로 변경
 app.use(morgan('dev'));        //실행 후 자동 next, 다음 라우터 이동.
 app.use(express.static(path.join(__dirname, 'public')));  //정정 파일 제공, 파일 위치 지정,
+app.use('/img',express.static(path.join(__dirname, 'uploads')));  //요청 주소와 업로드 주소가 다르다. img 주소로 요청하지만 실제로는 uploads 폴더로 요청해서 보내줌.
 app.use(express.json());   // JSON 형식전송 req.body객체가 JSON으로 변환.
 app.use(express.urlencoded({extended : false}));  //URL 주소 파라미터 값 파싱 해주는 역할.
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -62,11 +64,12 @@ app.use(passport.initialize());
 //패스포트 로그인 이후 작업 할 수 있게 해준다.deserializeUser로 보냄.
 app.use(passport.session()); 
 
-app.use('/', pageRouter);   // '/'경로에 댛ㄴ 요청이 들어오면 pageRouter객체에서 해다 요청에 대한 핸들러 함수를 찾아 실행. 
+app.use('/', pageRouter);   // '/'경로에 요청이 들어오면 pageRouter객체에서 해다 요청에 대한 핸들러 함수를 찾아 실행. 
 // 예 ) GET '/' 요청에 대한 함수가 정의 되어 있다면 해당 핸들러 함수 실행.
 
-app.use('/auth',authRouter);
+app.use('/auth', authRouter);
 app.use('/post', postRouter);
+app.use('/user', userRouter);
 
 //에러처리 미들웨어에는 next를 반드시적어주도록한다.
 app.use((req, res, next) => {

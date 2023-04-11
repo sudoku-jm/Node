@@ -1,21 +1,39 @@
 const express = require('express');
-
+const {Post , User} = require('../models');
+const { isLoggedIn, isNotLoggedIn } = require('../middlewares');
 const router = express.Router();
 
+router.use((req, res, next) => {
+    res.locals.user = req.user;
+    res.locals.followerCount = 0;
+    res.locals.followingCount = 0;
+    res.locals.followingIdList = [];
+    next();
+});
 
 //GET /
-router.get('/', (req, res, next) => {
-    const twits = [];
-    res.render('main', {        //main.html
-        title : 'Nodebird',
-        twits,
-        user : req.user,        // 로그인을 했을 경우 유저정보를 내려준다.
-    });
+router.get('/', async (req, res, next) => {
+    try{
+        const posts = await Post.findAll({
+            include : {
+                model : User,
+                attributes : ['id', 'nick'],
+            },
+            order : [['createdAt','DESC']],
+        });
+        res.render('main', {        //main.html
+            title : 'Nodebird',
+            twits : posts,
+        });
+    }catch(err){
+        console.error(err);
+        next(err);
+    }
 });
 
 
 // GET /join
-router.get('/join', (req, res, next) => {
+router.get('/join', isNotLoggedIn,(req, res, next) => {
     res.render('join', {        //join.html
         title : '회원가입 - NodeBird',
     })
@@ -23,7 +41,7 @@ router.get('/join', (req, res, next) => {
 
 
 // GET /profile
-router.get('/profile' , (req, res, next) => {
+router.get('/profile' , isLoggedIn, (req, res, next) => {
     res.render('profile', {     //profile.html
         title : '내 정보 - NodeBird',
     })
