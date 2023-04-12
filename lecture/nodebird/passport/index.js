@@ -22,7 +22,18 @@ module.exports = () => {
     // 로그인 이후 과정
     passport.deserializeUser((id, done) => {
         // console.log('deserializeUser');
-        User.findOne({ where: { id } })
+        User.findOne({ 
+            where: { id },
+            include : [{
+                model : User,
+                attributes : ['id','nick'],
+                as : 'Followers',
+            },{
+                model : User,
+                attributes : ['id', 'nick'],
+                as : 'Followings',
+            }],
+        })
           .then(user => done(null, user))
           .catch(err => done(err));
     });
