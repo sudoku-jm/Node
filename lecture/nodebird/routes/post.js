@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { isLoggedIn } = require('../middlewares');
-const { Post } = require('../models');
+const { Post, Hashtag} = require('../models');
 
 const router = express.Router();
 
@@ -49,6 +49,20 @@ router.post('/', isLoggedIn, upload.none(), async (req, res, next) => {
             img : req.body.url,
             UserId : req.user.id,
         });
+
+        const hashtags = req.body.content.match(/#[^\s#]*/g);
+        if(hashtags){
+            const result = await Promise.all(
+                hashtags.map(tag => {
+                    return Hashtag.findOrCreate({
+                        where : { title : tag.slice(1).toLowerCase() },
+                        // 문자중 # 제거하고 저장.
+                    })
+                }),
+            );
+            console.log(result);
+            await post.addHashtags(result.map(r => r[0]));
+        }
         res.redirect("/");
     }catch(err){
         console.error(err);
