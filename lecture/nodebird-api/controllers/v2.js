@@ -24,7 +24,7 @@ exports.createToken = async (req, res) => {
       id: domain.User.id,
       nick: domain.User.nick,
     }, process.env.JWT_SECRET, {
-      expiresIn: '1m', // 1분
+      expiresIn: '30m', // 30 분
       issuer: 'nodebird',
     });
     return res.json({
