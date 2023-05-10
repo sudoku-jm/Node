@@ -87,3 +87,11 @@ exports.searchByHashtag = async(req, res, next) => {
     }
   }
 };
+
+  //GET /
+  exports.renderMain = (req, res) => {
+    res.render('main',{key : process.env.CLIENT_SECRET});
+    //요청할 때 CLIENT_SECRET이 필요함.
+    //브라우저에 key를 내려보내준다. CLIENT_SECRET이 노출 됨.
+    // 원래는 보내면 안된다.
+  }

@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { Domain, User, Post, Hashtag } = require('../models');
 
 // 토큰 발급
-// POST /v1/token
+// POST /v2/token
 exports.createToken = async (req, res) => {
   const { clientSecret } = req.body;
   try {
@@ -27,6 +27,8 @@ exports.createToken = async (req, res) => {
       expiresIn: '30m', // 30 분
       issuer: 'nodebird',
     });
+
+
     return res.json({
       code: 200,
       message: '토큰이 발급되었습니다',
@@ -42,7 +44,7 @@ exports.createToken = async (req, res) => {
 };
 
 // 토근 유효성 테스트
-// POST /v1/test
+// POST /v2/test
 exports.tokenTest = (req, res) => {
   res.json(res.locals.decoded);
 };

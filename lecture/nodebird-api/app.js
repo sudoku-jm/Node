@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 const nunjucks = require('nunjucks');
 const dotenv = require('dotenv');
+const cors = require('cors');
 
 dotenv.config();
 
@@ -48,6 +49,11 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(cors({
+  origin : true,
+  credentials : true, //쿠키허용
+}));
 
 app.use('/v1', v1);
 app.use('/v2', v2);
