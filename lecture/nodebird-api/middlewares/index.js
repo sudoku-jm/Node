@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
+const {Domain} = require('../models');
 
 
 //로그인 여부 체크 (로그인 했을 경우 사용)
@@ -64,3 +66,20 @@ exports.verifyToken = (req, res, next) => {
       message: '새로운 버전이 나왔습니다. 새로운 버전을 사용하세요.',
     });
   };
+
+
+//cors 허용
+exports.corsWhenDomainMatches = async(req, res, next) => {
+
+  const domain = await Domain.findOne({
+    where : { host : new URL(req.get('origin')).host },
+  });
+  if(domain){
+    cors({
+      origin: true,
+      credentials : true,
+    })(req,res,next);
+  }else{
+    next();
+  }
+}
