@@ -1,5 +1,6 @@
 const Room = require('../schemas/room');
 const Chat = require('../schemas/chat');
+const { removeRoom: removeRoomService } = require('../services'); 
 
 
 // GET /
@@ -72,7 +73,7 @@ exports.enterRoom = async(req, res, next) => {
         // io.of('/chat') 네임스페이스
         const { rooms } = io.of('/chat').adapter;
 
-        console.log(rooms, rooms.get(req.params.id), rooms.get(req.params.id));
+        console.log('enterRoom==================',rooms, rooms.get(req.params.id), rooms.get(req.params.id));
 
         // o.of(네임스페이스).adapter[방아이디]로 방의 정보를 들고 올 수 있다.
         // 방의 정보를 room에 담고. room.length 로 방 사용자가 몇명인지 들고 올 수 있다.
@@ -88,6 +89,11 @@ exports.enterRoom = async(req, res, next) => {
         // }
 
         // io.of('/chat').adapter.rooms[방아이디].length 와 동일.
+        
+
+        //방 입장 후 기존 채팅 내역 불러오기 + 채팅 방에 데이터 내려주기.
+        //서비스 정책에 따라 최근 10건~100건 만 불러오기 등 달라질 수 있다.
+        const chats = await Chat.find({ room : room._id }).sort('createdAt'); // 작성날 기준 sort
        
         
         //모든 조건을 충족 한다면 방 입장. 
@@ -95,7 +101,7 @@ exports.enterRoom = async(req, res, next) => {
         return res.render('chat', {
             room,
             title: room.title,
-            chats: [],
+            chats,
             user: req.session.color,
           });
     }catch(error){
@@ -106,26 +112,52 @@ exports.enterRoom = async(req, res, next) => {
 
 // DELETE room/:id 방 삭제
 exports.removeRoom = async (req, res, next) => {
+    try {
+      await removeRoomService(req.params.id);
+      res.send('ok');
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  };
+
+  //POST room/:id/chat 채팅 데이터 저장.
+exports.sendChat = async( req, res, next) => {
     try{
-        //모든 사용자가 채팅방 나갔을 때 몇 초 뒤 방 삭제.
-        //방 삭제, 채팅내역 삭제. ->둘 다 삭제할지는 선택사항.
-        await Room.remove({ _id : req.params.id });
-        await Chat.remove({ room : req.params.id });
+        // console.log('sendChat - req : ', req)
+        console.log('============req.session?',req.session.color)
+        // console.log('sendChat - res : ', res)
+        const chat = await Chat.create({
+            room : req.params.id,
+            user : req.session.color,
+            chat : req.body.chat,
+        });
+
+        //chat 네임스페이스에 들어감. id가 동일한 곳. -> 채팅 내역 전송
+        // 네임스페이스 지정 : req.app.get('io').of('/chat')
+        // 네임스페이스의 특정 방 지정 : .to(req.params.id)
+        // 이벤트 발생 : .emit('chat',chat)
+        req.app.get('io').of('/chat').to(req.params.id).emit('chat',chat);
         res.send('ok');
+    }catch(error){
+      console.error(error);
+      next(error);
+    }
+  }
 
-        //채팅방 리스트 보고있는 사용자들에게 removeRoom 이벤트로 해당 채팅방 리스트 삭제.
-        req.app.get('io').of('/room').emit('removeRoom', req.params.id ); 
-        setTimeout(() => {
-            req.app.get('io').of('/room').emit('removeRoom', req.params.id ); 
-            //room 네임스페이스에 removeRoom 이벤트로 삭제되는 룸아이디 전달.
-        }, 2000);
+  //POST room/:id/gif 채팅 이미지 데이터 저장
+  exports.sendGif = async(req, res, next) => {
+    try{
+         const chat = await Chat.create({
+            room : req.params.id,
+            user : req.session.color,
+            gif : req.file.filename,                    //파일명으로 저장.
+         });
 
-        //setTimtout으로 감싸지 않은 경우 마지막으로 방에서 나간사람에게는 채팅목록이 삭제된 것을 알 수 없다. 전달이 안된다. chat 네임스페이스에 접속되어있고 room 네임스페이스에 접속한게 아니라서. 
-        //그래서 같은 이벤트를 한 번 더 보낸다.
-
-
+        req.app.get('io').of('/chat').to(req.params.id).emit('chat',chat);
+        res.send('ok');
     }catch(error){
         console.error(error);
         next(error);
     }
-};
+  }
